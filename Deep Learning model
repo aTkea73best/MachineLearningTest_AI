@@ -1,0 +1,72 @@
+import tensorflow as tf
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Embedding, LSTM, Dense, Dropout
+from sklearn.preprocessing import LabelEncoder
+
+# ===  Encode labels ===
+le = LabelEncoder()
+y_train_enc = le.fit_transform(y_train)
+y_test_enc = le.transform(y_test)
+
+# === Tokenize text ===
+max_words = 10000   # vocabulary size
+max_len = 100       # max words per review
+
+tokenizer = Tokenizer(num_words=max_words, oov_token="<OOV>")
+tokenizer.fit_on_texts(train_df['clean_review'])
+
+X_train_seq = tokenizer.texts_to_sequences(train_df['clean_review'])
+X_test_seq = tokenizer.texts_to_sequences(test_df['clean_review'])
+
+X_train_pad = pad_sequences(X_train_seq, maxlen=max_len, padding='post')
+X_test_pad = pad_sequences(X_test_seq, maxlen=max_len, padding='post')
+
+# === Build LSTM model ===
+model = Sequential([
+    Embedding(input_dim=max_words, output_dim=64, input_length=max_len),
+    LSTM(64, return_sequences=False),
+    Dropout(0.5),
+    Dense(32, activation='relu'),
+    Dense(len(le.classes_), activation='softmax')  # multi-class output
+])
+
+model.compile(loss='sparse_categorical_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
+
+model.summary()
+
+# === Train model ===
+history = model.fit(X_train_pad, y_train_enc,
+                    epochs=5,  # increase for better accuracy
+                    batch_size=32,
+                    validation_split=0.2)
+
+# === Evaluate model ===
+loss, acc = model.evaluate(X_test_pad, y_test_enc)
+print("LSTM Test Accuracy:", acc)
+
+# === Predict and confusion matrix ===
+y_pred_lstm = model.predict(X_test_pad)
+y_pred_classes = y_pred_lstm.argmax(axis=1)
+
+from sklearn.metrics import classification_report, confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+print("Classification Report: ", classification_report(y_test_enc, y_pred_classes))
+
+cm = confusion_matrix(y_test_enc, y_pred_classes)
+plt.figure(figsize=(6,5))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Oranges')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('LSTM Confusion Matrix')
+plt.show()
+
+
+# === Save the model ===
+model.save("sentiment_lstm_model.h5")
+print("LSTM model saved as sentiment_lstm_model.h5")
