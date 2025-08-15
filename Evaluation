@@ -1,4 +1,3 @@
-# ===  Import evaluation & plotting tools ===
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -8,7 +7,7 @@ from sklearn.model_selection import GridSearchCV
 # === Evaluate Logistic Regression ===
 print("=== Logistic Regression Evaluation ===")
 print("Accuracy:", accuracy_score(y_test, y_pred_lr))
-print("Classification Report:\n", classification_report(y_test, y_pred_lr))
+print("Classification Report: ", classification_report(y_test, y_pred_lr))
 
 # Confusion matrix
 cm_lr = confusion_matrix(y_test, y_pred_lr)
@@ -19,10 +18,10 @@ plt.ylabel('Actual')
 plt.title('Logistic Regression Confusion Matrix')
 plt.show()
 
-# ===  Evaluate Naive Bayes ===
+# === Naive Bayes ===
 print("=== Naive Bayes Evaluation ===")
 print("Accuracy:", accuracy_score(y_test, y_pred_nb))
-print("Classification Report:\n", classification_report(y_test, y_pred_nb))
+print("Classification Report: ", classification_report(y_test, y_pred_nb))
 
 # Confusion matrix
 cm_nb = confusion_matrix(y_test, y_pred_nb)
