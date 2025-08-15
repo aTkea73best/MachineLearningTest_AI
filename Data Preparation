@@ -1,0 +1,47 @@
+import pandas as pd
+import re
+import nltk
+from nltk.corpus import stopwords
+
+# Download stopwords (only needed once)
+nltk.download('stopwords')
+stop_words = set(stopwords.words('english'))
+
+# ===  Load datasets ===
+train_df = pd.read_csv("/content/train_data (1).csv")
+test_df = pd.read_csv("/content/test_data (1).csv")
+
+# Drop extra index columns if exist
+train_df = train_df.drop(columns=['Unnamed: 0'], errors='ignore')
+test_df = test_df.drop(columns=['Unnamed: 0'], errors='ignore')
+
+# ===  Detect review column automatically ===
+def detect_review_column(df):
+    for col in df.columns:
+        # Check if column likely contains text reviews
+        if df[col].dtype == 'object' and df[col].str.len().mean() > 20:
+            return col
+    raise ValueError("No review-like column found.")
+
+review_col_train = detect_review_column(train_df)
+review_col_test = detect_review_column(test_df)
+
+print(f"Detected review column in train: {review_col_train}")
+print(f"Detected review column in test: {review_col_test}")
+
+# === Text cleaning function ===
+def clean_text(text):
+    text = re.sub(r'<.*?>', '', text)              # remove HTML tags
+    text = re.sub(r'[^a-zA-Z\s]', '', text)        # remove punctuation & numbers
+    text = text.lower()                            # lowercase
+    words = text.split()
+    words = [w for w in words if w not in stop_words]  # remove stopwords
+    return ' '.join(words)
+
+# === Apply cleaning ===
+train_df['clean_review'] = train_df[review_col_train].apply(clean_text)
+test_df['clean_review'] = test_df[review_col_test].apply(clean_text)
+
+# === Check cleaned data ===
+print(train_df[['clean_review']].head())
+print(test_df[['clean_review']].head())
