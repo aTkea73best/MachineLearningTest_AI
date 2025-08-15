@@ -34,7 +34,7 @@ lr_model.fit(X_train, y_train)
 y_pred_lr = lr_model.predict(X_test)
 
 print("Logistic Regression Accuracy:", accuracy_score(y_test, y_pred_lr))
-print("Classification Report:\n", classification_report(y_test, y_pred_lr))
+print("Classification Report:\n" , classification_report(y_test, y_pred_lr))
 
 # === 9. Naive Bayes ===
 from sklearn.naive_bayes import MultinomialNB
