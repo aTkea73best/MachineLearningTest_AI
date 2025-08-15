@@ -1,0 +1,63 @@
+# ===  Import evaluation & plotting tools ===
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+import pickle
+from sklearn.model_selection import GridSearchCV
+
+# === Evaluate Logistic Regression ===
+print("=== Logistic Regression Evaluation ===")
+print("Accuracy:", accuracy_score(y_test, y_pred_lr))
+print("Classification Report:\n", classification_report(y_test, y_pred_lr))
+
+# Confusion matrix
+cm_lr = confusion_matrix(y_test, y_pred_lr)
+plt.figure(figsize=(6,5))
+sns.heatmap(cm_lr, annot=True, fmt='d', cmap='Blues')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Logistic Regression Confusion Matrix')
+plt.show()
+
+# ===  Evaluate Naive Bayes ===
+print("=== Naive Bayes Evaluation ===")
+print("Accuracy:", accuracy_score(y_test, y_pred_nb))
+print("Classification Report:\n", classification_report(y_test, y_pred_nb))
+
+# Confusion matrix
+cm_nb = confusion_matrix(y_test, y_pred_nb)
+plt.figure(figsize=(6,5))
+sns.heatmap(cm_nb, annot=True, fmt='d', cmap='Greens')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Naive Bayes Confusion Matrix')
+plt.show()
+
+# === Save the trained models and vectorizer ===
+with open('tfidf_vectorizer.pkl', 'wb') as f:
+    pickle.dump(vectorizer, f)
+
+with open('logistic_model.pkl', 'wb') as f:
+    pickle.dump(lr_model, f)
+
+with open('naive_bayes_model.pkl', 'wb') as f:
+    pickle.dump(nb_model, f)
+
+print("Models and vectorizer saved as .pkl files.")
+
+# === Optional: Logistic Regression Hyperparameter Tuning ===
+param_grid = {
+    'C': [0.1, 1, 10],
+    'solver': ['lbfgs', 'liblinear']
+}
+
+grid_search = GridSearchCV(LogisticRegression(max_iter=1000), param_grid, cv=5, scoring='accuracy')
+grid_search.fit(X_train, y_train)
+
+print("Best parameters:", grid_search.best_params_)
+print("Best CV accuracy:", grid_search.best_score_)
+
+# Use best model
+best_lr_model = grid_search.best_estimator_
+y_pred_best = best_lr_model.predict(X_test)
+print("Optimized Logistic Regression Test Accuracy:", accuracy_score(y_test, y_pred_best))
